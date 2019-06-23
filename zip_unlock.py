@@ -46,8 +46,6 @@ def main():
 
         passes = passes + new_passes
 
-        print(passes)
-
         return passes
 
 def try_pass(passes=None):
@@ -72,9 +70,9 @@ def try_pass(passes=None):
             time.sleep(10)
             return
         except Exception as e:
-            if str(e) == 'Bad password for file':
+            if str(e).split('<')[0].strip() == 'Bad password for file':
                 pass
-            elif 'Error -3 while decompressing' in str(e):
+            elif 'Error -3 while decompressing' in str(e).split('<')[0].strip():
                 pass
             else:
                 print (e)
@@ -84,8 +82,4 @@ if __name__ == '__main__':
 
  to_try = main()
 
- pool = multiprocessing.Pool(multiprocessing.cpu_count())
-
- pool.map(try_pass, to_try)
-
- pool.close()
+ try_pass(to_try)
