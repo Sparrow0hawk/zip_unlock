@@ -16,7 +16,6 @@ def main():
 
     password = ''
 
-    start = time.time()
     pwdfile = sys.argv[2]
     try:
         f = open(pwdfile,"r")
@@ -28,7 +27,7 @@ def main():
     # include facility to mutate words in
     # word list
 
-    if mutate_q.lower() == 'y':
+    if mutate_q[0].lower() == 'y':
 
         new_passes = []
 
@@ -49,6 +48,9 @@ def main():
         return passes
 
 def try_pass(passes=None):
+
+    start = time.time()
+
     try:
         Zip = sys.argv[1]
         myZip = zipfile.ZipFile(Zip)
@@ -59,7 +61,6 @@ def try_pass(passes=None):
     for pass_count, x in enumerate(passes):
         password = x.strip()
 
-        print(password)
         try:
             myZip.extractall(pwd = password.encode())
             end = time.time()
@@ -67,7 +68,7 @@ def try_pass(passes=None):
 
             print ("\nPassword cracked: %s\n" % password)
             print ("Total runtime was -- ", t_time, "second")
-            time.sleep(10)
+            time.sleep(3)
             return
         except Exception as e:
             if str(e).split('<')[0].strip() == 'Bad password for file':

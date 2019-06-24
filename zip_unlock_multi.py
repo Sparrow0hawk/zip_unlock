@@ -17,7 +17,6 @@ def main():
 
     password = ''
 
-    start = time.time()
     pwdfile = sys.argv[2]
     try:
         f = open(pwdfile,"r")
@@ -29,7 +28,7 @@ def main():
     # include facility to mutate words in
     # word list
 
-    if mutate_q.lower() == 'y':
+    if mutate_q[0].lower() == 'y':
 
         new_passes = []
 
@@ -50,6 +49,11 @@ def main():
         return passes
 
 def try_pass(passes=None):
+
+    start = time.time()
+
+    password = passes.strip()
+
     try:
         Zip = sys.argv[1]
         myZip = zipfile.ZipFile(Zip)
@@ -57,7 +61,11 @@ def try_pass(passes=None):
         print("[!] There was an error opening your zip file.")
         return
 
-    password = passes.strip()
+    # multiprocessing takes iterable that is passed
+    # to function so this section isn't required
+    #for pass_count, x in enumerate(passes):
+    #    password = x.strip()
+    #    print(password)
 
     try:
         myZip.extractall(pwd = password.encode())
@@ -66,13 +74,15 @@ def try_pass(passes=None):
 
         print ("\nPassword cracked: %s\n" % password)
         print ("Total runtime was -- ", t_time, "second")
-        time.sleep(10)
+        time.sleep(3)
+        pool.close()
+        pool.terminate()
+        pool.join()
         return
-
     except Exception as e:
-        if str(e) == 'Bad password for file':
+        if str(e).split('<')[0].strip() == 'Bad password for file':
             pass
-        elif 'Error -3 while decompressing' in str(e):
+        elif 'Error -3 while decompressing' in str(e).split('<')[0].strip():
             pass
         else:
             print (e)
@@ -87,18 +97,11 @@ if __name__ == '__main__':
     break_points = []
 
     for i in range(mp.cpu_count()):
-        break_points.append({'start' : math.ceil(len(to_try)/mp.cpu_count() * i),
-                            'stop' : math.ceil(len(to_try)/mp.cpu_count() * (i +1))})
+        break_points.append({'start' : math.ceil(len(to_try)/mp.cpu_count() * i),'stop' : math.ceil(len(to_try)/mp.cpu_count() * (i +1))})
 
-    result_objects = []
-
-    for x in break_points:
-        print(x)
-        result_objects = [pool.apply_async(try_pass,
-                                            args=(i)) for i in to_try[x['start']: x['stop']]
-                                            ]
-
-        [print(r.get()[1]) for r in result_objects]
+    for point in break_points:
+        print(point['start'],' ',point['stop'])
+        pool.map(try_pass, to_try[point['start']:point['stop']])
 
     pool.close()
     pool.join()
